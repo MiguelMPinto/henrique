@@ -4,6 +4,16 @@ const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
 
 const prefersReducedMotion = () => reducedMotionQuery.matches;
 
+const siteHeader = document.querySelector(".site-header");
+
+if (siteHeader) {
+  const onScroll = () => {
+    siteHeader.classList.toggle("scrolled", window.scrollY > 60);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+
 const navbar = document.querySelector(".navbar");
 const navToggle = document.querySelector(".nav-toggle");
 const navLinks = document.querySelectorAll(".nav-links a, .nav-cta");
@@ -221,6 +231,33 @@ const updateProgressiveChats = () => {
     });
   });
 };
+
+const revealEls = Array.from(document.querySelectorAll("[data-reveal]")).filter(
+  (el) => !el.closest("[data-horizontal-track]"),
+);
+
+if ("IntersectionObserver" in window && !prefersReducedMotion()) {
+  revealEls.forEach((el) => el.classList.add("will-reveal"));
+
+  const revealObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        entry.target.classList.remove("will-reveal");
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.08, rootMargin: "0px 0px -60px 0px" },
+  );
+
+  revealEls.forEach((el) => revealObserver.observe(el));
+} else {
+  revealEls.forEach((el) => el.classList.add("is-visible"));
+}
 
 const measureHorizontalSections = () => {
   horizontalSections.forEach((item) => {
